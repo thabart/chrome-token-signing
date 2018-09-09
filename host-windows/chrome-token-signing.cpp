@@ -29,6 +29,11 @@
 #include <io.h>
 #include <memory>
 
+#include <openssl/applink.c>
+#include <openssl/pem.h>
+#include <openssl/err.h>
+#include <openssl/pkcs12.h>
+
 #include "SessionLessDialog.h"
 
 using namespace std;
@@ -57,11 +62,53 @@ void sendMessage(const string &message)
 	cout << message;
 }
 
+void readCertificate() {
+	FILE *fp;
+	char* filePath = "c:\\Projects\\medikit\\chrome-token-signing\\certificates\\certificate.p12";
+	char* password = "password";
+	EVP_PKEY *pkey;
+	X509 *cert;
+	STACK_OF(X509) *ca = NULL;
+	PKCS12 *p12;
+	OpenSSL_add_all_algorithms();
+	ERR_load_crypto_strings();
+	fp = fopen(filePath, "rb");
+	if (!fp) {
+		fprintf(stderr, "Error opening file\n");
+		exit(1);
+	}
+	
+	p12 = d2i_PKCS12_fp(fp, NULL);
+	fclose(fp);
+	if (!p12) {
+		fprintf(stderr, "Error reading PKCS#12 file\n");
+		ERR_print_errors_fp(stderr);
+		exit(1);
+	}
+	
+	if (!PKCS12_parse(p12, password, &pkey, &cert, &ca)) {
+		fprintf(stderr, "Error parsing PKCS#12 file\n");
+		ERR_print_errors_fp(stderr);
+		exit(1);
+	}
+
+	PKCS12_free(p12);
+
+	if (pkey) {
+		fprintf(fp, "***Private Key***\n");
+		PEM_write_PrivateKey(fp, pkey, NULL, NULL, 0, NULL, NULL);
+	}
+}
+
 int main(int argc, char **argv)
 {
 	//Necessary for sending correct message length to stout (in Windows)
 	// DialogBoxParam(NULL, MAKEINTRESOURCE(IDD_SESSIONLESS_DIALOG), pParent, DlgProc, )
-	SessionLessDialog::getSessionlessCertificate();
+	
+	// SessionLessDialog::getSessionlessCertificate();
+
+	readCertificate();
+
 	/*
 	_setmode(_fileno(stdin), O_BINARY);
 	_setmode(_fileno(stdout), O_BINARY);
