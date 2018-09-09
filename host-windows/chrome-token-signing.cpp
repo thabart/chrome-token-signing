@@ -62,7 +62,7 @@ void sendMessage(const string &message)
 	cout << message;
 }
 
-void readCertificate() {
+string getPublicCertificate() {
 	FILE *fp;
 	char* filePath = "c:\\Projects\\medikit\\chrome-token-signing\\certificates\\certificate.p12";
 	char* password = "password";
@@ -74,30 +74,26 @@ void readCertificate() {
 	ERR_load_crypto_strings();
 	fp = fopen(filePath, "rb");
 	if (!fp) {
-		fprintf(stderr, "Error opening file\n");
-		exit(1);
+		return NULL;
 	}
 	
 	p12 = d2i_PKCS12_fp(fp, NULL);
 	fclose(fp);
 	if (!p12) {
-		fprintf(stderr, "Error reading PKCS#12 file\n");
-		ERR_print_errors_fp(stderr);
-		exit(1);
+		return NULL;
 	}
 	
 	if (!PKCS12_parse(p12, password, &pkey, &cert, &ca)) {
-		fprintf(stderr, "Error parsing PKCS#12 file\n");
-		ERR_print_errors_fp(stderr);
-		exit(1);
+		return NULL;
 	}
 
 	PKCS12_free(p12);
 
-	if (pkey) {
-		fprintf(fp, "***Private Key***\n");
-		PEM_write_PrivateKey(fp, pkey, NULL, NULL, 0, NULL, NULL);
-	}
+	string certificateName = cert->name;
+	ASN1_BIT_STRING* publicKey = cert->cert_info->key->public_key;
+	unsigned char* publicKeyData = publicKey->data;
+	string hex = BinaryUtils::bin2hex(publicKeyData, publicKey->length);
+	return hex;
 }
 
 int main(int argc, char **argv)
@@ -107,7 +103,8 @@ int main(int argc, char **argv)
 	
 	// SessionLessDialog::getSessionlessCertificate();
 
-	readCertificate();
+	string publickey = getPublicCertificate();
+	string s = "";
 
 	/*
 	_setmode(_fileno(stdin), O_BINARY);
