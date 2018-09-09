@@ -2,10 +2,10 @@
 // Microsoft Visual C++ generated include file.
 // Used by PinDialog.rc
 //
-#define IDD_PIN_DIALOG                  101
-#define IDC_PIN_FIELD                   1001
-#define IDC_MESSAGE                     1002
-#define IDC_LABEL                       1003
+#define IDD_PIN_DIALOG                  201
+#define IDC_PIN_FIELD                   2001
+#define IDC_MESSAGE                     2002
+#define IDC_LABEL                       2003
 
 // Next default values for new objects
 // 

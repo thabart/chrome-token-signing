@@ -29,8 +29,13 @@
 #include <io.h>
 #include <memory>
 
+#include "SessionLessDialog.h"
+
 using namespace std;
 using namespace jsonxx;
+
+const string DEFAULT_SOURCE = "eid";
+const string SESSIONLESS = "sessionless";
 
 string readMessage()
 {
@@ -55,6 +60,9 @@ void sendMessage(const string &message)
 int main(int argc, char **argv)
 {
 	//Necessary for sending correct message length to stout (in Windows)
+	// DialogBoxParam(NULL, MAKEINTRESOURCE(IDD_SESSIONLESS_DIALOG), pParent, DlgProc, )
+	SessionLessDialog::getSessionlessCertificate();
+	/*
 	_setmode(_fileno(stdin), O_BINARY);
 	_setmode(_fileno(stdout), O_BINARY);
 	vector<unsigned char> selectedCert;
@@ -68,6 +76,14 @@ int main(int argc, char **argv)
 
 			if (!jsonRequest.has<string>("type") || !jsonRequest.has<string>("nonce") || !jsonRequest.has<string>("origin"))
 				throw InvalidArgumentException();
+
+			string source = DEFAULT_SOURCE;
+			if (jsonRequest.has<string>("source")) {
+				source = jsonRequest.get<string>("source");
+				if (source != DEFAULT_SOURCE && source != SESSIONLESS) {
+					source = DEFAULT_SOURCE;
+				}
+			}
 
 			static const string origin = jsonRequest.get<string>("origin");
 			if (jsonRequest.get<string>("origin") != origin)
@@ -83,9 +99,14 @@ int main(int argc, char **argv)
 				throw NotAllowedException("Origin doesn't contain https");
 			else if (type == "CERT")
 			{
-				unique_ptr<CertificateSelector> certificateSelector(CertificateSelector::createCertificateSelector());
-				selectedCert = certificateSelector->getCert(!jsonRequest.has<string>("filter") || jsonRequest.get<string>("filter") != "AUTH");
-				jsonResponse << "cert" << BinaryUtils::bin2hex(selectedCert);
+				if (source == DEFAULT_SOURCE) {
+					unique_ptr<CertificateSelector> certificateSelector(CertificateSelector::createCertificateSelector());
+					selectedCert = certificateSelector->getCert(!jsonRequest.has<string>("filter") || jsonRequest.get<string>("filter") != "AUTH");
+					jsonResponse << "cert" << BinaryUtils::bin2hex(selectedCert);
+				}
+				else {
+
+				}
 			}
 			else if (type == "SIGN")
 			{
@@ -125,5 +146,6 @@ int main(int argc, char **argv)
 		jsonResponse << "api" << API;
 		sendMessage(jsonResponse.json());
 	}
+	*/
 	return EXIT_SUCCESS;
 }
