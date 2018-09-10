@@ -61,20 +61,11 @@ void sendMessage(const string &message)
 int main(int argc, char **argv)
 {
 	//Necessary for sending correct message length to stout (in Windows)
-	// DialogBoxParam(NULL, MAKEINTRESOURCE(IDD_SESSIONLESS_DIALOG), pParent, DlgProc, )
-	
-	// SessionLessDialog::getSessionlessCertificate();
+	// NativeSessionlessSelector* selector = NativeSessionlessSelector::createNativeSessionlessSelector();
+	// string hexCertificate = selector->getCertificate();
+	// string signature = selector->sign("coucou");
+	// string s = "";
 
-
-	// NativeSessionlessSelector selector = new NativeSessionlessSelector();
-	// selector->
-
-	NativeSessionlessSelector* selector = NativeSessionlessSelector::createNativeSessionlessSelector();
-	string hexCertificate = selector->getCertificate();
-	string signature = selector->sign("coucou");
-	string s = "";
-
-	/*
 	_setmode(_fileno(stdin), O_BINARY);
 	_setmode(_fileno(stdout), O_BINARY);
 	vector<unsigned char> selectedCert;
@@ -117,25 +108,32 @@ int main(int argc, char **argv)
 					jsonResponse << "cert" << BinaryUtils::bin2hex(selectedCert);
 				}
 				else {
-
+					NativeSessionlessSelector* selector = NativeSessionlessSelector::createNativeSessionlessSelector();
+					string hexCertificate = selector->getCertificate();
+					jsonResponse << "cert" << hexCertificate;
 				}
 			}
 			else if (type == "SIGN")
 			{
 				if (!jsonRequest.has<string>("cert") || !jsonRequest.has<string>("hash"))
 					throw InvalidArgumentException();
+				if (source == DEFAULT_SOURCE)
+				{
+					vector<unsigned char> cert = BinaryUtils::hex2bin(jsonRequest.get<string>("cert"));
+					vector<unsigned char> digest = BinaryUtils::hex2bin(jsonRequest.get<string>("hash"));
+					_log("signing hash: %s, with certId: %s", jsonRequest.get<string>("hash").c_str(), jsonRequest.get<string>("cert").c_str());
+					if (cert != selectedCert)
+						throw NotSelectedCertificateException();
 
-				vector<unsigned char> cert = BinaryUtils::hex2bin(jsonRequest.get<string>("cert"));
-				vector<unsigned char> digest = BinaryUtils::hex2bin(jsonRequest.get<string>("hash"));
-				_log("signing hash: %s, with certId: %s", jsonRequest.get<string>("hash").c_str(), jsonRequest.get<string>("cert").c_str());
-				if (cert != selectedCert)
-					throw NotSelectedCertificateException();
+					unique_ptr<Signer> signer(Signer::createSigner(cert));
+					if (!signer->showInfo(jsonRequest.get<string>("info", string())))
+						throw UserCancelledException();
 
-				unique_ptr<Signer> signer(Signer::createSigner(cert));
-				if (!signer->showInfo(jsonRequest.get<string>("info", string())))
-					throw UserCancelledException();
+					jsonResponse << "signature" << BinaryUtils::bin2hex(signer->sign(digest));
+				}
+				else {
 
-				jsonResponse << "signature" << BinaryUtils::bin2hex(signer->sign(digest));
+				}
 			}
 			else
 				throw InvalidArgumentException();
@@ -158,6 +156,6 @@ int main(int argc, char **argv)
 		jsonResponse << "api" << API;
 		sendMessage(jsonResponse.json());
 	}
-	*/
+
 	return EXIT_SUCCESS;
 }
