@@ -5,7 +5,6 @@
 #define IDD_SESSIONLESS_DIALOG          101
 #define IDC_BROWSE_BUTTON               1002
 #define IDC_CERTIFICATE_EDIT            1003
-#define IDC_PASSWORDs_EDIT              1004
 #define IDC_PASSWORD_EDIT               1004
 
 // Next default values for new objects

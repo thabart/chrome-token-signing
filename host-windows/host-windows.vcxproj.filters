@@ -75,6 +75,12 @@
     <ClInclude Include="SessionLessDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="NativeSessionlessSelector.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SessionlessDialogResource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\host-shared\BinaryUtils.cpp">
@@ -120,6 +126,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="SessionlessDialog.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NativeSessionlessSelector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
