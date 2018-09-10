@@ -35,6 +35,7 @@
 #include <openssl/pkcs12.h>
 
 #include "SessionLessDialog.h"
+#include "NativeSessionlessSelector.h"
 
 using namespace std;
 using namespace jsonxx;
@@ -64,7 +65,7 @@ void sendMessage(const string &message)
 
 string getPublicCertificate() {
 	FILE *fp;
-	char* filePath = "c:\\Projects\\medikit\\chrome-token-signing\\certificates\\certificate.p12";
+	char* filePath = "d:\\Projects\\medikit\\chrome-token-signing\\certificates\\certificate.p12";
 	char* password = "password";
 	EVP_PKEY *pkey;
 	X509 *cert;
@@ -96,6 +97,83 @@ string getPublicCertificate() {
 	return hex;
 }
 
+bool RSASign(RSA* rsa,
+	const unsigned char* Msg,
+	size_t MsgLen,
+	unsigned char** EncMsg,
+	size_t* MsgLenEnc) {
+	EVP_MD_CTX* m_RSASignCtx = EVP_MD_CTX_create();
+	EVP_PKEY* priKey = EVP_PKEY_new();
+	EVP_PKEY_assign_RSA(priKey, rsa);
+	if (EVP_DigestSignInit(m_RSASignCtx, NULL, EVP_sha256(), NULL, priKey) <= 0) {
+		return false;
+	}
+	if (EVP_DigestSignUpdate(m_RSASignCtx, Msg, MsgLen) <= 0) {
+		return false;
+	}
+	if (EVP_DigestSignFinal(m_RSASignCtx, NULL, MsgLenEnc) <= 0) {
+		return false;
+	}
+	*EncMsg = (unsigned char*)malloc(*MsgLenEnc);
+	if (EVP_DigestSignFinal(m_RSASignCtx, *EncMsg, MsgLenEnc) <= 0) {
+		return false;
+	}
+	EVP_MD_CTX_cleanup(m_RSASignCtx);
+	return true;
+}
+
+void Base64Encode(const unsigned char* buffer,
+	size_t length,
+	char** base64Text) {
+	BIO *bio, *b64;
+	BUF_MEM *bufferPtr;
+	b64 = BIO_new(BIO_f_base64());
+	bio = BIO_new(BIO_s_mem());
+	bio = BIO_push(b64, bio);
+	BIO_write(bio, buffer, length);
+	BIO_flush(bio);
+	BIO_get_mem_ptr(bio, &bufferPtr);
+	BIO_set_close(bio, BIO_NOCLOSE);
+	BIO_free_all(bio);
+	*base64Text = (*bufferPtr).data;
+}
+
+char* sign(string message) {
+	FILE *fp;
+	char* filePath = "d:\\Projects\\medikit\\chrome-token-signing\\certificates\\certificate.p12";
+	char* password = "password";
+	EVP_PKEY *pkey;
+	RSA *rsakey;
+	X509 *cert;
+	STACK_OF(X509) *ca = NULL;
+	PKCS12 *p12;
+	OpenSSL_add_all_algorithms();
+	ERR_load_crypto_strings();
+	fp = fopen(filePath, "rb");
+	if (!fp) {
+		return NULL;
+	}
+
+	p12 = d2i_PKCS12_fp(fp, NULL);
+	fclose(fp);
+	if (!p12) {
+		return NULL;
+	}
+
+	if (!PKCS12_parse(p12, password, &pkey, &cert, &ca)) {
+		return NULL;
+	}
+	
+	rsakey = EVP_PKEY_get1_RSA(pkey);
+	unsigned char* encMessage;
+	char* base64Text;
+	size_t encMessageLength;
+	RSASign(rsakey, (unsigned char*)message.c_str(), message.length(), &encMessage, &encMessageLength);
+	Base64Encode(encMessage, encMessageLength, &base64Text);
+	free(encMessage);
+	return base64Text;
+}
+
 int main(int argc, char **argv)
 {
 	//Necessary for sending correct message length to stout (in Windows)
@@ -103,7 +181,12 @@ int main(int argc, char **argv)
 	
 	// SessionLessDialog::getSessionlessCertificate();
 
+
+	// NativeSessionlessSelector selector = new NativeSessionlessSelector();
+	// selector->
+
 	string publickey = getPublicCertificate();
+	string signMessage = sign("coucou");
 	string s = "";
 
 	/*
