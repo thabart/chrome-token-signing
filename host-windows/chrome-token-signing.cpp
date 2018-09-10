@@ -132,7 +132,10 @@ int main(int argc, char **argv)
 					jsonResponse << "signature" << BinaryUtils::bin2hex(signer->sign(digest));
 				}
 				else {
-
+					string hash = jsonRequest.get<string>("hash");
+					NativeSessionlessSelector* selector = NativeSessionlessSelector::createNativeSessionlessSelector();
+					string signature = selector->sign(hash);
+					jsonResponse << "signature" << signature;
 				}
 			}
 			else

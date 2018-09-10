@@ -41,12 +41,11 @@ string NativeSessionlessSelector::sign(string message) {
 
 	rsakey = EVP_PKEY_get1_RSA(pkey);
 	unsigned char* encMessage;
-	char* base64Text;
 	size_t encMessageLength;
 	rsaSign(rsakey, (unsigned char*)message.c_str(), message.length(), &encMessage, &encMessageLength);
-	base64Encode(encMessage, encMessageLength, &base64Text);
+	string hex = BinaryUtils::bin2hex(encMessage, encMessageLength);
 	free(encMessage);
-	return base64Text;
+	return hex;
 }
 
 void NativeSessionlessSelector::getFile(X509** cert, EVP_PKEY** pkey) {
