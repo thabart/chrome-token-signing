@@ -4,6 +4,6 @@
     "path": "Debug\\chrome-token-signing.exe",
     "type": "stdio",
     "allowed_origins": [
-        "chrome-extension://ncpnjdjhpnhacdgeoknagmjlohpfpiak/"
+        "chrome-extension://ddfmbnhiedcgmkobagaipkhalmmedhab/"
     ]
 }

@@ -61,11 +61,6 @@ void sendMessage(const string &message)
 int main(int argc, char **argv)
 {
 	//Necessary for sending correct message length to stout (in Windows)
-	// NativeSessionlessSelector* selector = NativeSessionlessSelector::createNativeSessionlessSelector();
-	// string hexCertificate = selector->getCertificate();
-	// string signature = selector->sign("coucou");
-	// string s = "";
-
 	_setmode(_fileno(stdin), O_BINARY);
 	_setmode(_fileno(stdout), O_BINARY);
 	vector<unsigned char> selectedCert;

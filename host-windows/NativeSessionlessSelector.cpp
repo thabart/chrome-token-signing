@@ -17,16 +17,17 @@ NativeSessionlessSelector* NativeSessionlessSelector::createNativeSessionlessSel
 
 string NativeSessionlessSelector::getCertificate() {
 	X509* cert = NULL;
+	string hex;
 	EVP_PKEY* pkey = NULL;
 	getFile(&cert, &pkey);
 	if (cert == NULL || pkey == NULL) {
-		return NULL;
+		return hex;
 	}
 	
 	string certificateName = cert->name;
 	ASN1_BIT_STRING* publicKey = cert->cert_info->key->public_key;
 	unsigned char* publicKeyData = publicKey->data;
-	string hex = BinaryUtils::bin2hex(publicKeyData, publicKey->length);
+	hex = BinaryUtils::bin2hex(publicKeyData, publicKey->length);
 	return hex;
 }
 
@@ -34,16 +35,17 @@ string NativeSessionlessSelector::sign(string message) {
 	X509* cert = NULL;
 	EVP_PKEY* pkey = NULL;
 	RSA *rsakey;
+	string hex;
 	getFile(&cert, &pkey);
 	if (cert == NULL || pkey == NULL) {
-		return NULL;
+		return hex;
 	}
 
 	rsakey = EVP_PKEY_get1_RSA(pkey);
 	unsigned char* encMessage;
 	size_t encMessageLength;
 	rsaSign(rsakey, (unsigned char*)message.c_str(), message.length(), &encMessage, &encMessageLength);
-	string hex = BinaryUtils::bin2hex(encMessage, encMessageLength);
+	hex = BinaryUtils::bin2hex(encMessage, encMessageLength);
 	free(encMessage);
 	return hex;
 }
