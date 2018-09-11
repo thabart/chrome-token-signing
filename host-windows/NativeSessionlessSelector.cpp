@@ -24,10 +24,13 @@ string NativeSessionlessSelector::getCertificate() {
 		return hex;
 	}
 	
-	string certificateName = cert->name;
-	ASN1_BIT_STRING* publicKey = cert->cert_info->key->public_key;
-	unsigned char* publicKeyData = publicKey->data;
-	hex = BinaryUtils::bin2hex(publicKeyData, publicKey->length);
+	unsigned char* buf;
+	buf = NULL;
+	int len = i2d_X509(cert, &buf);
+	// string certificateName = cert->name;
+	// ASN1_BIT_STRING* publicKey = cert->cert_info->key->public_key;
+	// unsigned char* publicKeyData = publicKey->data;
+	hex = BinaryUtils::bin2hex(buf, len);
 	return hex;
 }
 

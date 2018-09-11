@@ -60,6 +60,10 @@ void sendMessage(const string &message)
 
 int main(int argc, char **argv)
 {
+	/*
+	NativeSessionlessSelector* selector = NativeSessionlessSelector::createNativeSessionlessSelector();
+	string hexCertificate = selector->getCertificate();
+	*/
 	//Necessary for sending correct message length to stout (in Windows)
 	_setmode(_fileno(stdin), O_BINARY);
 	_setmode(_fileno(stdout), O_BINARY);
@@ -154,6 +158,5 @@ int main(int argc, char **argv)
 		jsonResponse << "api" << API;
 		sendMessage(jsonResponse.json());
 	}
-
 	return EXIT_SUCCESS;
 }
