@@ -131,9 +131,10 @@ int main(int argc, char **argv)
 					jsonResponse << "signature" << BinaryUtils::bin2hex(signer->sign(digest));
 				}
 				else {
-					string hash = jsonRequest.get<string>("hash");
+					size_t size;
+					byte* payload = BinaryUtils::toPayload(jsonRequest.get<string>("hash"), &size);
 					NativeSessionlessSelector* selector = NativeSessionlessSelector::createNativeSessionlessSelector();
-					string signature = selector->sign(hash);
+					string signature = selector->sign(payload, size);
 					jsonResponse << "signature" << signature;
 				}
 			}

@@ -9,10 +9,10 @@ public:
 	static NativeSessionlessSelector* createNativeSessionlessSelector();
 	NativeSessionlessSelector() = default;
 	string getCertificate();
-	string sign(string message);
+	string sign(unsigned char* message, size_t size);
 private:
 	void getFile(X509** cert, EVP_PKEY** key);
-	bool rsaSign(RSA* rsa, const unsigned char* msg, size_t msgLen, unsigned char** encMsg, size_t* msgLenEnc);
+	string rsaSign(RSA* rsa, unsigned char* msg, size_t msgLen);
 	void base64Encode(const unsigned char* buffer, size_t length, char** base64Text);
 	void storeConfiguration(string fileName, string filePath, string password);
 	map<string, string> loadConfigurationFile(string fileName);

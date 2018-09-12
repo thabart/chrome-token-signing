@@ -34,7 +34,7 @@ string NativeSessionlessSelector::getCertificate() {
 	return hex;
 }
 
-string NativeSessionlessSelector::sign(string message) {
+string NativeSessionlessSelector::sign(unsigned char* message, size_t size) {
 	X509* cert = NULL;
 	EVP_PKEY* pkey = NULL;
 	RSA *rsakey;
@@ -45,11 +45,8 @@ string NativeSessionlessSelector::sign(string message) {
 	}
 
 	rsakey = EVP_PKEY_get1_RSA(pkey);
-	unsigned char* encMessage;
 	size_t encMessageLength;
-	rsaSign(rsakey, (unsigned char*)message.c_str(), message.length(), &encMessage, &encMessageLength);
-	hex = BinaryUtils::bin2hex(encMessage, encMessageLength);
-	free(encMessage);
+	hex = rsaSign(rsakey, message, size);
 	return hex;
 }
 
@@ -128,30 +125,15 @@ string NativeSessionlessSelector::getFullPath(string fileName) {
 	return string(path) + "\\" + fileName;
 }
 
-bool NativeSessionlessSelector::rsaSign(RSA* rsa, const unsigned char* msg, size_t msgLen, unsigned char** encMsg, size_t* msgLenEnc) {
+string NativeSessionlessSelector::rsaSign(RSA* rsa, unsigned char* msg, size_t msgLen) {
 
-	EVP_MD_CTX* m_RSASignCtx = EVP_MD_CTX_create();
-	EVP_PKEY* priKey = EVP_PKEY_new();
-	EVP_PKEY_assign_RSA(priKey, rsa);
-	if (EVP_DigestSignInit(m_RSASignCtx, NULL, EVP_sha256(), NULL, priKey) <= 0) {
+	unsigned char* sigret = (unsigned char*)malloc(256);
+	size_t siglen;
+	if (RSA_sign(NID_sha1, msg, msgLen, sigret, &siglen, rsa) != 1) {
 		return false;
 	}
 
-	if (EVP_DigestSignUpdate(m_RSASignCtx, msg, msgLen) <= 0) {
-		return false;
-	}
-
-	if (EVP_DigestSignFinal(m_RSASignCtx, NULL, msgLenEnc) <= 0) {
-		return false;
-	}
-
-	*encMsg = (unsigned char*)malloc(*msgLenEnc);
-	if (EVP_DigestSignFinal(m_RSASignCtx, *encMsg, msgLenEnc) <= 0) {
-		return false;
-	}
-
-	EVP_MD_CTX_cleanup(m_RSASignCtx);
-	return true;
+	return BinaryUtils::bin2hex(sigret, siglen);
 }
 
 void NativeSessionlessSelector::base64Encode(const unsigned char* buffer, size_t length, char** base64Text) {

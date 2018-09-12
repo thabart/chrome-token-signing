@@ -23,6 +23,27 @@
 
 using namespace std;
 
+
+
+byte* BinaryUtils::toPayload(const std::string& hex, size_t* length) {
+	//std::vector<char> bytes;
+
+	size_t size = hex.size();
+	byte *bytes = (byte*)malloc(sizeof(byte) * ((size / 2) + 1));
+
+	int j = 0;
+	for (unsigned int i = 0; i < hex.length(); i += 2) {
+		std::string byteString = hex.substr(i, 2);
+		unsigned char b = (unsigned char)strtol(byteString.c_str(), NULL, 16);
+		//bytes.push_back(byte);
+		bytes[j] = b;
+		j++;
+	}
+	bytes[j] = '\0';
+	*length = j;
+	return bytes;
+}
+
 vector<unsigned char> BinaryUtils::hex2bin(const string &hex) {
   if (hex.size() % 2 == 1)
       throw InvalidArgumentException("Hex is incorrect");
